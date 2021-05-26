@@ -1,0 +1,139 @@
+// Use this sample to create your own voice commands
+const API_KEY = '3eb9c385f2dc46ccaaf85f0383c191cd';
+let saved_articles = [];
+
+intent('What does this app do?', 'What can I do here?', 
+       reply('This application provides you with the latest news as well as information on specific topics'));
+
+
+
+
+//creating API endpoints for News by SOURCE
+intent('Give me the news from $(source* (.*))', (p) => {
+    let NEWS_API_URL = `https://newsapi.org/v2/top-headlines?apiKey=3eb9c385f2dc46ccaaf85f0383c191cd`;
+    
+    if(p.source.value){
+        NEWS_API_URL = `${NEWS_API_URL}&sources=${p.source.value.toLowerCase().split(" ").join('-')}`
+    }
+   api.axios.get(NEWS_API_URL)
+		.then((response) => {
+ 			
+        
+        if(response.length == 0){
+             p.play('sorry please try searching for news from a different source');
+             return;
+         }
+       saved_articles = response.data.articles;
+       
+        p.play({command : 'newsHeadlines', articles:response.data.articles});
+        p.play(`here are (latest|recent) ${p.source.value} news`);
+        p.play('Would you like me to read the headlines?');
+        p.then(confirmation);
+        
+        
+    })
+    .catch((error) => {
+			console.log(error);
+			p.play(error);
+		});
+})
+
+
+
+
+//creating API endpoints for News by TERMS
+intent('what\'s up with $(term* (.*))', (p) => {
+    let NEWS_API_URL = `https://newsapi.org/v2/everything?apiKey=3eb9c385f2dc46ccaaf85f0383c191cd`;
+    
+    if(p.term.value){
+        NEWS_API_URL = `${NEWS_API_URL}&q=${p.term.value}`
+    }
+   api.axios.get(NEWS_API_URL)
+		.then((response) => {
+ 			
+        
+        if(response.length == 0){
+             p.play('sorry please try searching for something else');
+             return;
+         }
+       saved_articles = response.data.articles;
+        
+        p.play({command : 'newsHeadlines', articles:response.data.articles});
+        p.play(`here are (latest|recent) articles on ${p.term.value}`);
+       
+        p.play('Would you like me to read the headlines?');
+        p.then(confirmation);
+        
+        
+    })
+    .catch((error) => {
+			console.log(error);
+			p.play(error);
+		});
+})
+
+//creating API endpoints for News by CATEGORIES
+const CATEGORIES = [ 'business', 'entertainment', 'general', 'health', 'science', 'sports', 'technology'];
+const CATEGORIES_INTENT = `${CATEGORIES.map((category) => `${category}-${category}`).join('|')}|`;
+
+intent(`(show|what is|tell me|what's|what are|what're|read) (the|) (recent|latest|) $(N news|headlines) (in|about|on|) $(C~ ${CATEGORIES_INTENT})`,
+  `(read|show|get|bring me|give me) (the|) (recent|latest) $(C~ ${CATEGORIES_INTENT}) $(N news|headlines)`, (p) => {
+    
+    let NEWS_API_URL = `https://newsapi.org/v2/top-headlines?apiKey=3eb9c385f2dc46ccaaf85f0383c191cd&country=us`;
+    
+    if(p.C.value){
+        NEWS_API_URL = `${NEWS_API_URL}&category=${p.C.value}`
+    }
+   api.axios.get(NEWS_API_URL)
+		.then((response) => {
+ 			
+        
+        if(response.length == 0){
+             p.play('SOrry please try again');
+             return;
+         }
+        saved_articles = response.data.articles;
+        p.play({command : 'newsHeadlines', articles:response.data.articles});
+       
+        if(p.C.value){
+            p.play(`here are (latest|recent) articles on ${p.C.value} category`);
+        }
+       else{
+           p.play(`here are (latest|recent) news`);
+       
+       }
+       p.play('Would you like me to read the headlines?');
+       p.then(confirmation);
+        
+    })
+    .catch((error) => {
+			console.log(error);
+			p.play(error);
+		});
+})
+
+ 
+const confirmation = context(() =>{
+    intent('yes', async (p) => {
+        for(var i=0; i < saved_articles.length; i++){
+            p.play({command : 'highlight', article: saved_articles[i] });
+            p.play(`${saved_articles[i].title}`);
+        }
+    } )
+    intent('no', (p) => {
+        p.play('Sure, sounds good to me');
+    })
+    
+})
+
+intent('open (the|) (article|) (number|) $(number* (.*))', (p) => {
+    if(p.number.value){
+        p.play({command : 'open', number :  p.number.value, articles : saved_articles})
+    }
+})
+
+intent('go back' , (p) => {
+    p.play('sure, going back');
+    p.play({command : 'newHeadlines', articles: []})
+}) 
+
