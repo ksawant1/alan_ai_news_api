@@ -28,10 +28,10 @@ Launches the test runner in the interactive watch mode.\
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
 ### References 
-https://alan.app/docs/usage/examples/predefined-examples
-https://github.com/alan-ai 
-https://github.com/mui-org 
-https://newsapi.org/docs 
-https://ibaslogic.com/react-tutorial-for-beginners/ 
+1. https://alan.app/docs/usage/examples/predefined-examples
+2. https://github.com/alan-ai 
+3. https://github.com/mui-org
+4.  https://newsapi.org/docs 
+5.  https://ibaslogic.com/react-tutorial-for-beginners/ 
 
 
